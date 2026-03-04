@@ -1,16 +1,14 @@
 {
   "langrev": "1",
   "warnings": [ "no-unused" ],
-  "dependency-search-paths": [ "lib" ],
   "dependencies": [ ],
   "authors": [ "Miguel Cock <mcockc@outlook.com>" ],
   "version": "0.1.0",
-  "sources": [ "src/**" ],
-  "test-sources": [ "test/**" ],
   "output": "build",
   "targets": {
-    "funcitonal": {
-      "type": "executable"
+    "test": {
+      "type": "executable",
+      "sources": [ "test/**","src/**" ]
     }
   },
   "cpu": "generic",

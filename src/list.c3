@@ -1,8 +1,10 @@
-module functional {Type};
+module functional::list <Type>;
+import std::core::mem::allocator;
 import std::io;
 
-alias List = Type[];
+faultdef INDEX_NOT_FOUND;
 
+alias List = Type[];
 alias ApplyCallback = fn Type (Type);
 alias ApplyConditionalCallback = fn bool (Type);
 alias ApplyDoubleConditionalCallback = fn bool (Type, Type);
@@ -18,16 +20,12 @@ Params:
 Returns:
 A new list containing the same elements.
 *>
-fn Type[] Type[].clone(Type[] self, Allocator allocator)
+fn Type[] Type[].clone(Type[] self, Allocator allocator=tmem)
 {
-    Type* clone = allocator::alloc_array(allocator, Type, self.len);
-    foreach (i, val : self)
-    {
-        clone[i] = val;
-    }
+    Type[] clone = allocator::new_array(allocator,Type,self.len);
+    mem::copy(clone,self,$sizeof(self));
     return clone[:self.len];
 }
-
 
 <*
 Frees memory associated with this list.
@@ -39,10 +37,7 @@ Params:
 Returns:
 Nothing.
 *>
-fn void Type[].free(Type[] self, Allocator allocator)
-{
-    allocator::free(allocator, self); 
-}
+fn void Type[].free(Type[] self, Allocator allocator) => allocator::free(allocator, self); 
 
 
 <*
@@ -54,11 +49,7 @@ Params:
 Returns:
 Nothing.
 *>
-macro Type[].printn(Type[] self)
-{
-    io::printn(self);
-}
-
+macro Type[].printn(Type[] self) => io::printn(self); 
 
 <*
 Applies a function to each element in-place.
@@ -72,8 +63,7 @@ The same list after modification.
 *>
 fn Type[] Type[].for_each(Type[] self, ApplyCallback func)
 {
-    foreach (i, val : self)
-    {
+    foreach (i, val : self) {
         self[i] = func(val);
     }
     return self;
@@ -96,8 +86,7 @@ fn Type[] Type[].map(Type[] self, ApplyCallback func, Allocator allocator)
 {
     Type[] clone = self.clone(allocator) @pure;
 
-    foreach (i, val : self)
-    {
+    foreach (i, val : self) {
         clone[i] = func(val) @pure;
     }
     return clone;
@@ -120,15 +109,12 @@ fn Type[] Type[].filter(Type[] self, ApplyConditionalCallback func, Allocator al
     Type[] clone = self.clone(allocator);
 
     usz counter = 0;
-    for (usz i = 0; i < self.len; i++)
-    {
-        if (func(self[i]))
-        {
+    for (usz i = 0; i < self.len; i++) {
+        if (func(self[i])) {
             clone[counter] = self[i];
             counter++;
         }
     }
-
     clone = ((Type*)allocator::realloc(allocator, clone, counter * Type.sizeof))[:counter];
     return clone;
 }
@@ -147,9 +133,8 @@ true if at least one element matches, otherwise false.
 *>
 fn bool Type[].contains(Type[] self, ApplyConditionalCallback func)
 {
-    for (usz i = 0; i < self.len; i++)
-    {
-        return func(self[i]) @pure;
+    foreach( item : self) {
+        if(!func(item) @pure) return true;
     }
     return false;
 }
@@ -163,19 +148,14 @@ Params:
 - func: predicate used to test elements
 
 Returns:
-Index of the matching element, or NOT_FOUND.
+Index of the matching element, or INDEX_NOT_FOUND.
 @pure
 *>
-fn usz? Type[].find(Type[] self, ApplyConditionalCallback func)
-{
-    for (usz i = 0; i < self.len; i++)
-    {
-        if (func(self[i]) @pure)
-        {
-            return i;
-        }
+fn usz? Type[].find(Type[] self, ApplyConditionalCallback func) {
+    for(usz i =0;self.len;++i) {
+        if (func(self[i]) @pure) return i;
     }
-    return err::NOT_FOUND?;
+    return INDEX_NOT_FOUND~;
 }
 
 
@@ -190,8 +170,7 @@ The same list after reversal.
 *>
 fn Type[] Type[].reverse(Type[] self)
 {
-    for (usz i = 0; i < self.len / 2; i++)
-    {
+    for (usz i = 0; i < self.len / 2; i++) {
         Type tmp = self[i];
         self[i] = self[self.len - 1 - i];
         self[self.len - 1 - i] = tmp;
@@ -214,10 +193,8 @@ Number of matching elements.
 fn int Type[].count(Type[] self, ApplyConditionalCallback func)
 {
     int counter = 0;
-    for (usz i = 0; i < self.len; i++)
-    {
-        if (func(self[i]) @pure)
-        {
+    for (usz i = 0; i < self.len; i++) {
+        if (func(self[i]) @pure) {
             counter++;
         }
     }
@@ -237,13 +214,10 @@ Nothing — modifies the list in-place.
 fn void Type[].sort(Type[] self, ApplyDoubleConditionalCallback less)
 {
     bool swapped = true;
-    while (swapped)
-    {
+    while (swapped) {
         swapped = false;
-        for (usz i = 0; i + 1 < self.len; i++)
-        {
-            if (!less(self[i], self[i + 1]))
-            {
+        for (usz i = 0; i + 1 < self.len; i++) {
+            if (!less(self[i], self[i + 1])) {
                 Type tmp = self[i];
                 self[i] = self[i + 1];
                 self[i + 1] = tmp;
@@ -252,7 +226,6 @@ fn void Type[].sort(Type[] self, ApplyDoubleConditionalCallback less)
         }
     }
 }
-
 // sum
 // product
 // exist

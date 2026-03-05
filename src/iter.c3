@@ -1,67 +1,67 @@
-module functional::list <Type>;
+module functional::iter <Type>;
 import std::core::mem::allocator;
 import std::io;
 
 faultdef INDEX_NOT_FOUND;
 
-alias List = Type[];
+alias Iter = Type[];
 alias ApplyCallback = fn Type (Type);
 alias ApplyConditionalCallback = fn bool (Type);
 alias ApplyDoubleConditionalCallback = fn bool (Type, Type);
 
 
 <*
-Clones the list into a new allocation.
+Clones the iter into a new allocation.
 
 Params:
-- self: list to clone
+- self: iter to clone
 - allocator: allocator used for the copy
 
 Returns:
-A new list containing the same elements.
+A new iter containing the same elements.
 *>
-fn Type[] Type[].clone(Type[] self, Allocator allocator=tmem)
+fn Iter Iter.clone(Iter self, Allocator allocator=tmem)
 {
-    Type[] clone = allocator::new_array(allocator,Type,self.len);
+    Iter clone = allocator::new_array(allocator,Type,self.len);
     mem::copy(clone,self,$sizeof(self));
     return clone[:self.len];
 }
 
 <*
-Frees memory associated with this list.
+Frees memory associated with this iter.
 
 Params:
-- self: list to free
+- self: iter to free
 - allocator: allocator tied to the allocation
 
 Returns:
 Nothing.
 *>
-fn void Type[].free(Type[] self, Allocator allocator) => allocator::free(allocator, self); 
+fn void Iter.free(Iter self, Allocator allocator) => allocator::free(allocator, self); 
 
 
 <*
-Prints the list followed by a newline.
+Prints the iter followed by a newline.
 
 Params:
-- self: list to print
+- self: iter to print
 
 Returns:
 Nothing.
 *>
-macro Type[].printn(Type[] self) => io::printn(self); 
+macro Iter.printn(Iter self) => io::printn(self); 
 
 <*
 Applies a function to each element in-place.
 
 Params:
-- self: list to modify
+- self: iter to modify
 - func: function applied to each element
 
 Returns:
-The same list after modification.
+The same iter after modification.
 *>
-fn Type[] Type[].for_each(Type[] self, ApplyCallback func)
+fn Iter Iter.for_each(Iter self, ApplyCallback func)
 {
     foreach (i, val : self) {
         self[i] = func(val);
@@ -71,20 +71,20 @@ fn Type[] Type[].for_each(Type[] self, ApplyCallback func)
 
 
 <*
-Creates a new list by applying a function to each element.
+Creates a new iter by applying a function to each element.
 
 Params:
-- self: source list
+- self: source iter
 - func: mapping function
-- allocator: allocator used for the new list
+- allocator: allocator used for the new iter
 
 Returns:
-A new mapped list.
+A new mapped iter.
 @pure
 *>
-fn Type[] Type[].map(Type[] self, ApplyCallback func, Allocator allocator)
+fn Iter Iter.map(Iter self, ApplyCallback func, Allocator allocator)
 {
-    Type[] clone = self.clone(allocator) @pure;
+    Iter clone = self.clone(allocator) @pure;
 
     foreach (i, val : self) {
         clone[i] = func(val) @pure;
@@ -94,19 +94,19 @@ fn Type[] Type[].map(Type[] self, ApplyCallback func, Allocator allocator)
 
 
 <*
-Builds a new list containing only elements that satisfy the predicate.
+Builds a new iter containing only elements that satisfy the predicate.
 
 Params:
-- self: source list
+- self: source iter
 - func: filter predicate
-- allocator: allocator used for the new list
+- allocator: allocator used for the new iter
 
 Returns:
-A new filtered list.
+A new filtered iter.
 *>
-fn Type[] Type[].filter(Type[] self, ApplyConditionalCallback func, Allocator allocator)
+fn Iter Iter.filter(Iter self, ApplyConditionalCallback func, Allocator allocator)
 {
-    Type[] clone = self.clone(allocator);
+    Iter clone = self.clone(allocator);
 
     usz counter = 0;
     for (usz i = 0; i < self.len; i++) {
@@ -124,14 +124,14 @@ fn Type[] Type[].filter(Type[] self, ApplyConditionalCallback func, Allocator al
 Checks whether any element satisfies the predicate.
 
 Params:
-- self: list to inspect
+- self: iter to inspect
 - func: predicate to test each element
 
 Returns:
 true if at least one element matches, otherwise false.
 @pure
 *>
-fn bool Type[].contains(Type[] self, ApplyConditionalCallback func)
+fn bool Iter.contains(Iter self, ApplyConditionalCallback func)
 {
     foreach( item : self) {
         if(!func(item) @pure) return true;
@@ -144,14 +144,14 @@ fn bool Type[].contains(Type[] self, ApplyConditionalCallback func)
 Finds the index of the first element that satisfies the predicate.
 
 Params:
-- self: list to search
+- self: iter to search
 - func: predicate used to test elements
 
 Returns:
 Index of the matching element, or INDEX_NOT_FOUND.
 @pure
 *>
-fn usz? Type[].find(Type[] self, ApplyConditionalCallback func) {
+fn usz? Iter.find(Iter self, ApplyConditionalCallback func) {
     for(usz i =0;self.len;++i) {
         if (func(self[i]) @pure) return i;
     }
@@ -160,15 +160,15 @@ fn usz? Type[].find(Type[] self, ApplyConditionalCallback func) {
 
 
 <*
-Reverses the list in-place.
+Reverses the iter in-place.
 
 Params:
-- self: list to reverse
+- self: iter to reverse
 
 Returns:
-The same list after reversal.
+The same iter after reversal.
 *>
-fn Type[] Type[].reverse(Type[] self)
+fn Iter Iter.reverse(Iter self)
 {
     for (usz i = 0; i < self.len / 2; i++) {
         Type tmp = self[i];
@@ -183,14 +183,14 @@ fn Type[] Type[].reverse(Type[] self)
 Counts how many elements satisfy the predicate.
 
 Params:
-- self: list to inspect
+- self: iter to inspect
 - func: predicate function
 
 Returns:
 Number of matching elements.
 @pure
 *>
-fn int Type[].count(Type[] self, ApplyConditionalCallback func)
+fn int Iter.count(Iter self, ApplyConditionalCallback func)
 {
     int counter = 0;
     for (usz i = 0; i < self.len; i++) {
@@ -202,16 +202,16 @@ fn int Type[].count(Type[] self, ApplyConditionalCallback func)
 }
 
 <*
-Sorts the list in-place using the comparator.
+Sorts the iter in-place using the comparator.
 
 Params:
-- self: list to sort
+- self: iter to sort
 - less: comparison function (a < b)
 
 Returns:
-Nothing — modifies the list in-place.
+Nothing — modifies the iter in-place.
 *>
-fn void Type[].sort(Type[] self, ApplyDoubleConditionalCallback less)
+fn void Iter.sort(Iter self, ApplyDoubleConditionalCallback less)
 {
     bool swapped = true;
     while (swapped) {

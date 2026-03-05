@@ -6,7 +6,7 @@ It extends C3 slices of any type (Type[]) with functional-style operations such 
 ### Example operations include:
 
 - [x] for_each(fn) – Apply a function to each element (in place)
-- [x] map(fn) – Create a new transformed list
+- [x] map(fn) – Create a new transformed lter
 - [x] filter(fn) – Keep elements that satisfy a predicate
 - [x] contains(fn) – Check if any element matches a predicate
 - [x] find(fn) – Return the index of the first matching element
@@ -20,29 +20,33 @@ It extends C3 slices of any type (Type[]) with functional-style operations such 
 // import the module
 import functional;
 
+alias IterInt = Iter{int}
+alias ApplyCallbackInt  = ApplyCallback {int};
+alias ApplyCallbackBool = ApplyConditionalCallback {int};
+
 // use it
-List{int} list = {1, 2, 3, 4};
+IterInt lter = {1, 2, 3, 4};
 
 // iterate
-list
+lter
     .for_each(fn(x) => x * 2)
     .for_each(fn(x) => x * 4)
     .printn();
 // [8, 16, 24, 32]
 
 // check for condition
-io::printn(list.contains(fn(i) => i < 10));
+io::printn(lter.contains(fn(i) => i < 10));
 // true
 
-// clone lists
-List{int} new_list = list
+// clone lters
+IterInt new_lter = lter
         .map(fn(x) => x * 2, tmem) // temporal allocator
         .for_each(fn(x) => x * 4);
 
 
-// create a new filtered list
-List{int} list_filtered = list
+// create a new filtered lter
+IterInt lter_filtered = lter
         .filter(fn(num) => num > 23, tmem);
-list_filtered.printn();
+lter_filtered.printn();
 // [24, 32]
 ~~~

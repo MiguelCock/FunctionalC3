@@ -9,15 +9,48 @@ alias ApplyCallbackInt  = ApplyCallback{int};
 alias ApplyCallbackBool = ApplyConditionalCallback{int};
 
 
-fn bool check_filter(IterInt prev, IterInt now, ApplyCallbackBool f) @inline
+// ======================================
+// ============= TEST CLONE =============
+// ======================================
+
+fn bool check_clone(IterInt prev, IterInt now) @inline
 {
-    foreach (i : prev) {
-        foreach (i2 : now) {
-            if (f(i2) == false && f(i) == false) return false;
-        }
+    for (usz i = 0; i < prev.len; ++i) {
+        if (now[i] != prev[i]) return false;
     }
     return true;
 }
+
+fn void test_clone() @test
+{
+    IterInt iter  = {1, 2, 3, 4};
+    IterInt clone = iter.clone();
+    test::@check(check_clone(iter, clone), "clone failed");
+}
+
+// ========================================
+// ============= TEST REVERSE =============
+// ========================================
+
+fn bool check_reverse(IterInt prev, IterInt now) @inline
+{
+    for (usz i = 0; i < prev.len; ++i) {
+        if (now[i] != prev[(prev.len - i) - 1]) return false;
+    }
+    return true;
+}
+
+fn void test_reverse() @test
+{
+    IterInt iter    = {1, 2, 3, 4};
+    IterInt rev     = iter.clone();
+    rev.reverse();
+    test::@check(check_reverse(iter, rev), "reverse failed");
+}
+
+// ===============================================
+// ============= TEST TRANSFORMATION =============
+// ===============================================
 
 fn bool check_transformation(IterInt prev, IterInt now, ApplyCallbackInt f) @inline
 {
@@ -37,38 +70,6 @@ fn bool check_iter_transformations(IterInt prev, IterInt now, ApplyCallbackInt[]
     return true;
 }
 
-fn bool check_clone(IterInt prev, IterInt now) @inline
-{
-    for (usz i = 0; i < prev.len; ++i) {
-        if (now[i] != prev[i]) return false;
-    }
-    return true;
-}
-
-fn bool check_reverse(IterInt prev, IterInt now) @inline
-{
-    for (usz i = 0; i < prev.len; ++i) {
-        if (now[i] != prev[(prev.len - i) - 1]) return false;
-    }
-    return true;
-}
-
-
-fn void test_clone() @test
-{
-    IterInt iter  = {1, 2, 3, 4};
-    IterInt clone = iter.clone();
-    test::@check(check_clone(iter, clone), "clone failed");
-}
-
-fn void test_reverse() @test
-{
-    IterInt iter    = {1, 2, 3, 4};
-    IterInt rev     = iter.clone();
-    rev.reverse();
-    test::@check(check_reverse(iter, rev), "reverse failed");
-}
-
 fn void test_for_each_transformations() @test
 {
     IterInt iter  = {1, 2, 3, 4};
@@ -86,6 +87,10 @@ fn void test_for_each_transformations() @test
     );
 }
 
+// =========================================
+// ============= TEST CONTAINS =============
+// =========================================
+
 fn void test_contains() @test
 {
     IterInt iter  = {1, 2, 3, 4};
@@ -98,6 +103,10 @@ fn void test_contains() @test
     test::@check(trans.contains(fn(i) => i == 32), "expected value 32 to be present");
     test::@check(trans.contains(fn(i) => i == 8),  "expected value 8 to be present");
 }
+
+// =====================================
+// ============= TEST FIND =============
+// =====================================
 
 fn void test_find() @test
 {
@@ -115,6 +124,10 @@ fn void test_find() @test
     test::@check(idx8 == 0, "index of 8 does not match expected position 0");
 }
 
+// ====================================
+// ============= TEST MAP =============
+// ====================================
+
 fn void test_map_transformations() @test
 {
     IterInt iter  = {1, 2, 3, 4};
@@ -131,6 +144,21 @@ fn void test_map_transformations() @test
     );
 }
 
+
+// =======================================
+// ============= TEST FILTER =============
+// =======================================
+
+fn bool check_filter(IterInt prev, IterInt now, ApplyCallbackBool f) @inline
+{
+    foreach (i : prev) {
+        foreach (i2 : now) {
+            if (f(i2) == false && f(i) == false) return false;
+        }
+    }
+    return true;
+}
+
 fn void test_filter() @test
 {
     IterInt iter  = {1, 2, 3, 4};
@@ -145,6 +173,10 @@ fn void test_filter() @test
         "filter failed: result contains values not satisfying predicate"
     );
 }
+
+// ======================================
+// ============= TEST INDEX =============
+// ======================================
 
 fn void test_index_assignment() @test
 {

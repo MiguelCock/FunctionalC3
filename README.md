@@ -11,11 +11,9 @@ import functional;
 
 // instanciate the types you need
 alias IterInt = Iter{int}
-alias ApplyCallbackInt  = ApplyCallback {int};
-alias ApplyCallbackBool = ApplyConditionalCallback {int};
 
 // use it
-IterInt lter = {1, 2, 3, 4};
+Iter{int} lter = {1, 2, 3, 4};
 
 // iterate
 lter
@@ -29,13 +27,13 @@ io::printn(lter.contains(fn(i) => i < 10));
 // true
 
 // clone lters
-IterInt new_lter = lter
+Iter{int} new_lter = lter
         .map(fn(x) => x * 2, tmem) // temporal allocator
         .for_each(fn(x) => x * 4);
 
 
 // create a new filtered lter
-IterInt lter_filtered = lter
+Iter{int} lter_filtered = lter
         .filter(fn(num) => num > 23, tmem);
 lter_filtered.printn();
 // [24, 32]

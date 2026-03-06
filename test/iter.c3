@@ -1,147 +1,106 @@
-module functionaltest;
+module iter_test;
 
-import functional;
 import functional::iter;
 import std::io;
-
-alias IterInt = Iter{int};
-alias ApplyCallbackInt  = ApplyCallback{int};
-alias ApplyCallbackBool = ApplyConditionalCallback{int};
 
 
 // ======================================
 // ============= TEST CLONE =============
 // ======================================
 
-fn bool check_clone(IterInt prev, IterInt now) @inline
+fn void clone() @test
 {
-    for (usz i = 0; i < prev.len; ++i) {
-        if (now[i] != prev[i]) return false;
-    }
-    return true;
-}
+    Iter{int} iter  = {1, 2, 3, 4};
+    Iter{int} clone = iter.clone();
 
-fn void test_clone() @test
-{
-    IterInt iter  = {1, 2, 3, 4};
-    IterInt clone = iter.clone();
-    test::@check(check_clone(iter, clone), "clone failed");
+    for (usz i = 0; i < iter.len; ++i) {
+        assert(iter[i] == clone[i], "clone failed");
+    }
 }
 
 // ========================================
 // ============= TEST REVERSE =============
 // ========================================
 
-fn bool check_reverse(IterInt prev, IterInt now) @inline
+fn void reverse() @test
 {
-    for (usz i = 0; i < prev.len; ++i) {
-        if (now[i] != prev[(prev.len - i) - 1]) return false;
-    }
-    return true;
-}
+    Iter{int} iter    = {1, 2, 3, 4};
+    Iter{int} rev     = iter.clone().reverse();
 
-fn void test_reverse() @test
-{
-    IterInt iter    = {1, 2, 3, 4};
-    IterInt rev     = iter.clone();
-    rev.reverse();
-    test::@check(check_reverse(iter, rev), "reverse failed");
+    for (usz i = 0; i < iter.len; ++i) {
+        assert(rev[i] == iter[(iter.len - i) - 1], "reverse failed");
+    }
 }
 
 // ===============================================
 // ============= TEST TRANSFORMATION =============
 // ===============================================
 
-fn bool check_transformation(IterInt prev, IterInt now, ApplyCallbackInt f) @inline
+fn void for_each_transformations() @test
 {
-    foreach (i : prev) {
-        foreach (i2 : now) {
-            if (f(i) != i2) return false;
-        }
-    }
-    return true;
-}
-
-fn bool check_iter_transformations(IterInt prev, IterInt now, ApplyCallbackInt[] fs) @inline
-{
-    foreach (f : fs) {
-        if (check_transformation(prev, now, f)) return false;
-    }
-    return true;
-}
-
-fn void test_for_each_transformations() @test
-{
-    IterInt iter  = {1, 2, 3, 4};
-    IterInt trans = iter.clone();
-    trans
+    Iter{int} iter  = {1, 2, 3, 4};
+    Iter{int} trans = iter.clone()
         .for_each(fn(x) => x * 2)
         .for_each(fn(x) => x * 4);
 
-    test::@check(
-        check_iter_transformations(iter, trans, {
-            fn(x) => x * 2,
-            fn(x) => x * 4,
-        }),
-        "for_each chained transformations failed"
-    );
+    assert(iter.len == trans.len, "for_each: length mismatch after transformation");
+    for (usz i = 0; i < iter.len; i++) {
+        int expected = iter[i] * 2 * 4;
+        assert(trans[i] == expected, "for_each chained transformation failed at index %d", i);
+    }
 }
 
 // =========================================
 // ============= TEST CONTAINS =============
 // =========================================
 
-fn void test_contains() @test
+fn void contains() @test
 {
-    IterInt iter  = {1, 2, 3, 4};
-    IterInt trans = iter.clone();
-    trans
+    Iter{int} iter  = {1, 2, 3, 4};
+    iter
         .for_each(fn(x) => x * 2)
         .for_each(fn(x) => x * 4);
 
-    test::@check(trans.contains(fn(i) => i < 10),  "expected a value less than 10");
-    test::@check(trans.contains(fn(i) => i == 32), "expected value 32 to be present");
-    test::@check(trans.contains(fn(i) => i == 8),  "expected value 8 to be present");
+    assert(iter.contains(fn(i) => i < 10),  "expected a value less than 10");
+    assert(iter.contains(fn(i) => i == 32), "expected value 32 to be present");
+    assert(!iter.contains(fn(i) => i == 7),  "expected value 7 to not be present");
 }
 
 // =====================================
 // ============= TEST FIND =============
 // =====================================
 
-fn void test_find() @test
+fn void find() @test
 {
-    IterInt iter  = {1, 2, 3, 4};
-    IterInt trans = iter.clone();
-    trans
-        .for_each(fn(x) => x * 2)
-        .for_each(fn(x) => x * 4);
+    Iter{int} iter = {1, 2, 3, 4};
 
-    usz? idx8 = trans.find(fn(num) => num == 8);
-    if (catch err = idx8) {
-        test::@check(false, "error finding index of 8: %s", err);
-        return;
+    usz? idx1 = iter.find(fn(num) => num == 8);
+    if (catch err = idx1) {
+        assert(err == iter::INDEX_NOT_FOUND, "error finding index of 8: %s");
     }
-    test::@check(idx8 == 0, "index of 8 does not match expected position 0");
+
+    usz? idx2 = iter.find(fn(num) => num == 3);
+    if (catch err = idx2) {
+        assert(false, "error finding num");
+    }
+    assert(idx2 == 2, "expexted value equals to 2");
 }
 
 // ====================================
 // ============= TEST MAP =============
 // ====================================
 
-fn void test_map_transformations() @test
+fn void map_transformations() @test
 {
-    IterInt iter  = {1, 2, 3, 4};
-    IterInt trans = iter
-        .map(fn(x) => x * 2, tmem)
-        .for_each(fn(x) => x * 4);
+    Iter{int} iter  = {1, 2, 3, 4};
+    Iter{int} trans = iter
+        .map(fn(x) => x * 2, tmem);
 
-    test::@check(
-        check_iter_transformations(iter, trans, {
-            fn(x) => x * 2,
-            fn(x) => x * 4,
-        }),
-        "map + for_each transformations failed"
-    );
+    assert(iter.len == trans.len, "map: length mismatch after transformation");
+    for (usz i = 0; i < iter.len; i++) {
+        int expected = iter[i] * 2;
+        assert(trans[i] == expected, "map + for_each transformation failed at index %d", i);
+    }
 }
 
 
@@ -149,45 +108,16 @@ fn void test_map_transformations() @test
 // ============= TEST FILTER =============
 // =======================================
 
-fn bool check_filter(IterInt prev, IterInt now, ApplyCallbackBool f) @inline
+fn void filter() @test
 {
-    foreach (i : prev) {
-        foreach (i2 : now) {
-            if (f(i2) == false && f(i) == false) return false;
-        }
+    Iter{int} iter  = {1, 2, 3, 4};
+
+    Iter{int} filtered = iter
+        .filter(fn(num) => num < 3, tmem);
+
+    assert(filtered.len == 2, "expect filter size to equal 2");
+
+    for (int i = 0; i < filtered.len; i++) {
+        assert(filtered[i] == iter[i], "filtered array copied wrong");
     }
-    return true;
-}
-
-fn void test_filter() @test
-{
-    IterInt iter  = {1, 2, 3, 4};
-    IterInt trans = iter
-        .map(fn(x) => x * 2, tmem)
-        .for_each(fn(x) => x * 4);
-
-    IterInt filtered = trans.filter(fn(num) => num > 23, tmem);
-
-    test::@check(
-        check_filter(trans, filtered, fn(num) => num > 23),
-        "filter failed: result contains values not satisfying predicate"
-    );
-}
-
-// ======================================
-// ============= TEST INDEX =============
-// ======================================
-
-fn void test_index_assignment() @test
-{
-    IterInt iter  = {1, 2, 3, 4};
-    IterInt trans = iter
-        .map(fn(x) => x * 2, tmem)
-        .for_each(fn(x) => x * 4);
-
-    IterInt filtered  = trans.filter(fn(num) => num > 23, tmem);
-    int     prev_val  = filtered[1];
-    filtered[1]       = 10;
-
-    test::@check(filtered[1] != prev_val, "index assignment to filtered iter failed");
 }

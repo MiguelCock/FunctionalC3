@@ -133,8 +133,8 @@ true if at least one element matches, otherwise false.
 *>
 fn bool Iter.contains(Iter self, ApplyConditionalCallback func)
 {
-    foreach( item : self) {
-        if(!func(item) @pure) return true;
+    foreach(item : self) {
+        if(func(item) @pure) return true;
     }
     return false;
 }
@@ -152,7 +152,7 @@ Index of the matching element, or INDEX_NOT_FOUND.
 @pure
 *>
 fn usz? Iter.find(Iter self, ApplyConditionalCallback func) {
-    for(usz i =0;self.len;++i) {
+    for(usz i = 0; i < self.len; ++i) {
         if (func(self[i]) @pure) return i;
     }
     return INDEX_NOT_FOUND~;
